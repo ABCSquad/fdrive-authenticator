@@ -35,21 +35,21 @@ export default function Navbar() {
           className={`flex-1 justify-center items-center bg-opacity-50 fixed`}
           onPress={() => setShowDropdown(false)}
         >
-          <View
-          // className="bg-white p-4 rounded-md w-full"
-          >
-            <TouchableOpacity onPress={() => handleOptionButtonPress(1)}>
-              <Text
-              //  className="text-gray-900 font-medium text-lg py-2"
-              >
-                Option 1
+          <View className="bg-gray-200 p-4 rounded-md w-full">
+            <TouchableOpacity
+              onPress={() => handleOptionButtonPress(1)}
+              className="items-end"
+            >
+              <Text className="text-gray-900 font-medium text-lg py-2">
+                Scan a QR code
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleOptionButtonPress(2)}>
-              <Text
-              //  className="text-gray-900 font-medium text-lg py-2"
-              >
-                Option 2
+            <TouchableOpacity
+              onPress={() => handleOptionButtonPress(2)}
+              className="items-end"
+            >
+              <Text className="text-gray-900 font-medium text-lg py-2">
+                Choose a QR image
               </Text>
             </TouchableOpacity>
           </View>
