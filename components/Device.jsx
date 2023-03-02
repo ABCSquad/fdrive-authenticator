@@ -6,9 +6,9 @@ export default function Device({ name, lastLogin, location }) {
     <View className="flex-row my-3 ml-3">
       <View className="w-4/5">
         <View className="px-2 py-1 w-full">
-          <Text className="text-base font-bold">Device name: {name}</Text>
+          <Text className="text-base font-bold">{name}</Text>
           <Text className="text-base">Last login: {lastLogin}</Text>
-          <Text className="text-base">Location: {location}</Text>
+          <Text className="text-base">{location}</Text>
         </View>
       </View>
       <View className="grow items-center justify-center border-l-2 border-border">
