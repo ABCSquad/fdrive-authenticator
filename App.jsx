@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { StatusBar } from "expo-status-bar";
-import { Text, View, SafeAreaView, TouchableOpacity } from "react-native";
+import { View, SafeAreaView } from "react-native";
 import Navbar from "./components/Navbar";
 import Device from "./components/Device";
+import ScanButton from "./components/ScanButton";
 
 export default function App() {
   const [deviceArr, setDeviceArr] = useState([
@@ -25,7 +26,7 @@ export default function App() {
 
   return (
     <SafeAreaView className="h-full flex-col items-center">
-      <View className="flex-none p-5 w-full justify-center bg-white border-b-2 border-border">
+      <View className="flex-none p-5 w-full justify-center bg-white border-y-2 border-border">
         <Navbar />
       </View>
 
@@ -43,11 +44,7 @@ export default function App() {
       </View>
 
       <View className="flex-none px-4 py-2 w-full">
-        <TouchableOpacity className="items-end justify-center">
-          <View className="w-14 h-14 rounded-full bg-main items-center justify-center">
-            <Text className="text-white text-4xl">+</Text>
-          </View>
-        </TouchableOpacity>
+        <ScanButton />
       </View>
 
       <StatusBar style="auto" />
