@@ -35,12 +35,12 @@ export default function ScanButton() {
       >
         <TouchableOpacity
           onPress={() => setShowDropdown(false)}
-          className={`inline-flex flex-1 justify-end items-end bg-opacity-50 fixed`}
+          className={`inline-flex flex-1 justify-end items-end bg-opacity-100 fixed`}
         >
           <View className={`px-4 py-2 rounded-md relative -top-24`}>
             <TouchableOpacity
               onPress={() => handleOptionButtonPress(1)}
-              className="items-end rounded-lg my-2 border border-border shadow-2xl shadow-black"
+              className="items-end rounded-lg my-2 bg-white border border-border shadow-sm shadow-gray-200"
             >
               <Text className="text-gray-900 text-base px-3 py-2">
                 Scan a QR code
@@ -48,7 +48,7 @@ export default function ScanButton() {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => handleOptionButtonPress(2)}
-              className="items-end rounded-lg my-2 border border-border shadow-2xl shadow-black"
+              className="items-end rounded-lg my-2 bg-white border border-border shadow-sm shadow-gray-200"
             >
               <Text className="text-gray-900 text-base px-3 py-2">
                 Choose a QR image
