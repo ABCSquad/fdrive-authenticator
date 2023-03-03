@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react"
-import { Button, Text, View } from "react-native"
+import { Button, StyleSheet, Text, View } from "react-native"
 import { BarCodeScanner } from "expo-barcode-scanner"
 import NoPermissionModal from "../components/NoPermissionModal"
+import { Camera } from "expo-camera"
 
 const QRScannerScreen = ({ navigation }) => {
   const [hasPermission, setHasPermission] = useState(null)
@@ -70,10 +71,15 @@ const QRScannerScreen = ({ navigation }) => {
           )}
         </Text>
       </View>
-      <View className=" p-4 h-full w-screen bg-red-100 rounded">
-        <BarCodeScanner
+      <View className=" h-full bg-red-100 rounded">
+        {/* <BarCodeScanner
           onBarCodeScanned={scanned ? undefined : handleScan}
-          style={{ height: "100%", width: "100%" }}
+          style={{ width: 900, height: 1600 }}
+        /> */}
+        <Camera
+          onBarCodeScanned={scanned ? undefined : handleScan}
+          ratio="16:9"
+          style={{ width: 450, height: 854 }}
         />
       </View>
     </View>
