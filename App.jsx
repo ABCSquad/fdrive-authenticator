@@ -19,7 +19,7 @@ const ScreenStack = () => {
         <Stack.Screen
           name="QRScanner"
           component={QRScannerScreen}
-          options={{ title: "Scan" }}
+          options={{ title: "Scan QR Code" }}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -3,15 +3,11 @@ import { Text, View } from "react-native"
 
 const QRScannerScreen = () => {
   return (
-    <View
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>QR scanner </Text>
+    <View className="flex flex-col h-full justify-between items-center bg-fuchsia-500">
+      <Text className="text-center">QR scanner </Text>
+      <Text className="text-center">QR scanner </Text>
+      <Text className="text-center">QR scanner </Text>
+      <Text className="text-center">QR scanner </Text>
     </View>
   )
 }
