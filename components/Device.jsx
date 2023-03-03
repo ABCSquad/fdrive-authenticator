@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity } from "react-native";
-import Icon from "react-native-vector-icons/Entypo";
+import { View, Text, TouchableOpacity } from "react-native"
+import Icon from "react-native-vector-icons/Entypo"
 
 export default function Device({ name, lastLogin, location }) {
   return (
@@ -19,5 +19,5 @@ export default function Device({ name, lastLogin, location }) {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  )
 }

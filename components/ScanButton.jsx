@@ -1,20 +1,20 @@
-import { useEffect, useRef, useState } from "react";
-import { View, Text, TouchableOpacity, Modal } from "react-native";
-import { styled } from "nativewind";
-const StyledView = styled(View);
+import { useEffect, useRef, useState } from "react"
+import { View, Text, TouchableOpacity, Modal, Button } from "react-native"
+import { styled } from "nativewind"
+const StyledView = styled(View)
 
-export default function ScanButton() {
-  const [showDropdown, setShowDropdown] = useState(false);
-  const buttonRef = useRef(null);
+export default function ScanButton({ navigation }) {
+  const [showDropdown, setShowDropdown] = useState(false)
+  const buttonRef = useRef(null)
 
   const handleScanButtonPress = () => {
-    setShowDropdown(!showDropdown);
-  };
+    setShowDropdown(!showDropdown)
+  }
 
   const handleOptionButtonPress = (option) => {
-    console.log(option);
-    setShowDropdown(false);
-  };
+    console.log(option)
+    setShowDropdown(false)
+  }
 
   return (
     <>
@@ -42,7 +42,10 @@ export default function ScanButton() {
               onPress={() => handleOptionButtonPress(1)}
               className="items-end rounded-lg my-2 bg-white border border-border shadow-sm shadow-gray-200"
             >
-              <Text className="text-gray-900 text-base px-3 py-2">
+              <Text
+                className="text-gray-900 text-base px-3 py-2"
+                onPress={() => navigation.navigate("QRScanner")}
+              >
                 Scan a QR code
               </Text>
             </TouchableOpacity>
@@ -58,5 +61,5 @@ export default function ScanButton() {
         </TouchableOpacity>
       </Modal>
     </>
-  );
+  )
 }
