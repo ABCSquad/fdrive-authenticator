@@ -1,8 +1,11 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { View, Text, TouchableOpacity, Modal } from "react-native";
+import { styled } from "nativewind";
+const StyledView = styled(View);
 
-export default function Navbar() {
+export default function ScanButton({ buttonCoordinates }) {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [modalBottom, setModalBottom] = useState(null);
   const buttonRef = useRef(null);
 
   const handleScanButtonPress = () => {
@@ -13,6 +16,13 @@ export default function Navbar() {
     console.log(option);
     setShowDropdown(false);
   };
+
+  useEffect(() => {
+    if (buttonCoordinates) {
+      const { y, height } = buttonCoordinates;
+      setModalBottom(y - height);
+    }
+  }, [buttonCoordinates]);
 
   return (
     <>
@@ -32,23 +42,23 @@ export default function Navbar() {
         onRequestClose={() => setShowDropdown(false)}
       >
         <TouchableOpacity
-          className={`flex-1 justify-center items-center bg-opacity-50 fixed`}
           onPress={() => setShowDropdown(false)}
+          className={`inline-flex flex-1 justify-end items-end bg-opacity-50 fixed`}
         >
-          <View className="bg-gray-200 p-4 rounded-md w-full">
+          <View className={`px-4 py-2 rounded-md relative -top-24`}>
             <TouchableOpacity
               onPress={() => handleOptionButtonPress(1)}
-              className="items-end"
+              className="items-end bg-gray-50 rounded-lg my-2 border border-border"
             >
-              <Text className="text-gray-900 font-medium text-lg py-2">
+              <Text className="text-gray-900 font-medium text-lg px-3 py-2">
                 Scan a QR code
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => handleOptionButtonPress(2)}
-              className="items-end"
+              className="items-end bg-gray-50 rounded-lg my-2 border border-border"
             >
-              <Text className="text-gray-900 font-medium text-lg py-2">
+              <Text className="text-gray-900 font-medium text-lg px-3 py-2">
                 Choose a QR image
               </Text>
             </TouchableOpacity>

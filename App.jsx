@@ -23,6 +23,17 @@ export default function App() {
       location: "Pune, IN",
     },
   ]);
+  const [buttonCoordinates, setButtonCoordinates] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+  });
+
+  const handleButtonLayout = (event) => {
+    const { x, y, width, height } = event.nativeEvent.layout;
+    setButtonCoordinates({ x, y, width, height });
+  };
 
   return (
     <SafeAreaView className="h-full flex-col items-center">
@@ -43,8 +54,11 @@ export default function App() {
         </View>
       </View>
 
-      <View className="flex-none px-4 py-2 w-full">
-        <ScanButton />
+      <View
+        className="flex-none px-4 py-2 w-full"
+        onLayout={handleButtonLayout}
+      >
+        <ScanButton buttonCoordinates={buttonCoordinates} />
       </View>
 
       <StatusBar style="auto" />
