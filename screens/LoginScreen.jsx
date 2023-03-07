@@ -8,13 +8,44 @@ import {
   StyleSheet,
   Keyboard,
 } from "react-native";
+import nacl from "tweet-nacl-react-native-expo";
+import * as SecureStore from "expo-secure-store";
+
+import { AuthContext } from "../context/AuthContext";
 
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState(false);
+  const { setIsAuthenticated } = React.useContext(AuthContext);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     // TODO: Implement login logic here
+    // Check if username and password match statically
+    if (username !== "test" || password !== "test") {
+      setLoginError(true);
+      return;
+    }
+
+    // Clear login error
+    setLoginError(false);
+    // Generate key pair using elliptic curve cryptography
+    const keyPair = await nacl.sign.keyPair();
+    const { publicKey, secretKey } = keyPair;
+    // Convert key pair to base64 encoded strings
+    const base64EncodedPublic = nacl.util.encodeBase64(publicKey);
+    const base64EncodedPrivate = nacl.util.encodeBase64(secretKey);
+    // Convert key pair to Uint8Array
+    const base64DecodedPublic = nacl.util.decodeBase64(base64EncodedPublic);
+    const base64DecodedPrivate = nacl.util.decodeBase64(base64EncodedPrivate);
+
+    // Store key pair in secure store
+    await SecureStore.setItemAsync("publicKey", base64EncodedPublic);
+    await SecureStore.setItemAsync("privateKey", base64EncodedPrivate);
+
+    // Set user as authenticated
+    setIsAuthenticated(true);
+
     navigation.navigate("Home"); // Navigate to Home screen after login
   };
 
@@ -46,6 +77,11 @@ const LoginScreen = ({ navigation }) => {
         >
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
+        {loginError && (
+          <Text className=" text-red-500 mt-5">
+            Incorrect email or password
+          </Text>
+        )}
       </View>
     </TouchableWithoutFeedback>
   );

@@ -1,4 +1,4 @@
-import { View, Text } from "react-native"
+import { View, Text } from "react-native";
 
 export default function Navbar() {
   return (
@@ -7,5 +7,5 @@ export default function Navbar() {
         <Text className="text-black text-xl">Linked Devices</Text>
       </View>
     </View>
-  )
+  );
 }

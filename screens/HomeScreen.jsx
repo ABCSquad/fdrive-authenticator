@@ -1,9 +1,9 @@
-import React, { useState } from "react"
-import { StatusBar } from "expo-status-bar"
-import { View, SafeAreaView, Button } from "react-native"
-import Navbar from "../components/Navbar"
-import Device from "../components/Device"
-import ScanButton from "../components/ScanButton"
+import React, { useState } from "react";
+import { StatusBar } from "expo-status-bar";
+import { View, SafeAreaView, Button } from "react-native";
+import Navbar from "../components/Navbar";
+import Device from "../components/Device";
+import ScanButton from "../components/ScanButton";
 
 const HomeScreen = ({ navigation }) => {
   const [deviceArr, setDeviceArr] = useState([
@@ -22,7 +22,7 @@ const HomeScreen = ({ navigation }) => {
       lastLogin: "2021-05-01 12:00:00",
       location: "Pune, IN",
     },
-  ])
+  ]);
   return (
     <>
       <SafeAreaView className="h-full flex-col items-center">
@@ -50,7 +50,7 @@ const HomeScreen = ({ navigation }) => {
         <StatusBar style="auto" />
       </SafeAreaView>
     </>
-  )
-}
+  );
+};
 
-export default HomeScreen
+export default HomeScreen;
