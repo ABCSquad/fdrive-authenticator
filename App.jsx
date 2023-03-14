@@ -3,6 +3,11 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as SecureStore from "expo-secure-store";
 
+// Signal related imports
+import "react-native-get-random-values";
+import "react-native-securerandom";
+import "expo-random";
+
 import HomeScreen from "./screens/HomeScreen";
 import QRScannerScreen from "./screens/QRScannerScreen";
 import LoginScreen from "./screens/LoginScreen";

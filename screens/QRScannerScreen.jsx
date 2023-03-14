@@ -1,34 +1,34 @@
-import React, { useEffect, useState } from "react"
-import { Button, StyleSheet, Text, View } from "react-native"
-import { BarCodeScanner } from "expo-barcode-scanner"
-import NoPermissionModal from "../components/NoPermissionModal"
-import { Camera } from "expo-camera"
+import React, { useEffect, useState } from "react";
+import { Button, StyleSheet, Text, View } from "react-native";
+import { BarCodeScanner } from "expo-barcode-scanner";
+import NoPermissionModal from "../components/NoPermissionModal";
+import { Camera } from "expo-camera";
 
 const QRScannerScreen = ({ navigation }) => {
-  const [hasPermission, setHasPermission] = useState(null)
-  const [scanned, setScanned] = useState(false)
+  const [hasPermission, setHasPermission] = useState(null);
+  const [scanned, setScanned] = useState(false);
   const [data, setData] = useState(
     " Open web.whatapp.com on your browser or any device and scan the QRCode."
-  )
+  );
 
   const askForCameraPermission = () => {
-    ;(async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync()
-      setHasPermission(status === "granted")
-    })()
-  }
+    (async () => {
+      const { status } = await BarCodeScanner.requestPermissionsAsync();
+      setHasPermission(status === "granted");
+    })();
+  };
 
   // Request Camera Permission
   useEffect(() => {
-    askForCameraPermission()
-  }, [])
+    askForCameraPermission();
+  }, []);
 
   // Scan QRCode
   const handleScan = ({ type, data }) => {
-    setScanned(true)
-    setData(data)
-    console.log("Type" + type + "\nData" + data)
-  }
+    setScanned(true);
+    setData(data);
+    // console.log("Type" + type + "\nData" + data);
+  };
 
   // Screen when system permission modal is shown
   if (hasPermission === null) {
@@ -42,7 +42,7 @@ const QRScannerScreen = ({ navigation }) => {
         </View>
         <View className=" p-4 h-full w-screen bg-red-100 rounded"></View>
       </View>
-    )
+    );
   }
 
   // Screen when permission is denied
@@ -58,7 +58,7 @@ const QRScannerScreen = ({ navigation }) => {
       //     title="click me"
       //   ></Button>
       // </View>
-    )
+    );
   }
 
   return (
@@ -83,7 +83,7 @@ const QRScannerScreen = ({ navigation }) => {
         />
       </View>
     </View>
-  )
-}
+  );
+};
 
-export default QRScannerScreen
+export default QRScannerScreen;
