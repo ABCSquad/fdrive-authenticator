@@ -3,6 +3,7 @@ import { Button, StyleSheet, Text, View } from "react-native";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import NoPermissionModal from "../components/NoPermissionModal";
 import { Camera } from "expo-camera";
+import * as SecureStore from "expo-secure-store";
 
 const QRScannerScreen = ({ navigation }) => {
   const [hasPermission, setHasPermission] = useState(null);
@@ -24,10 +25,53 @@ const QRScannerScreen = ({ navigation }) => {
   }, []);
 
   // Scan QRCode
-  const handleScan = ({ type, data }) => {
-    setScanned(true);
+  const handleScan = async ({ type, data }) => {
     setData(data);
-    // console.log("Type" + type + "\nData" + data);
+    const token = data.toString();
+    console.log("Scan successful: ", token);
+    // Check if data is a valid token
+    const hexKeyRegex = /^[0-9a-fA-F]{32}$/;
+    if (hexKeyRegex.test(token)) {
+      setScanned(true);
+      // Store identityKey of companion in secure store
+      let companions = await SecureStore.getItemAsync("companions");
+      if (!companions) companions = JSON.stringify([]);
+      const updatedCompanions = [...JSON.parse(companions), token];
+      await SecureStore.setItemAsync(
+        "companions",
+        JSON.stringify(updatedCompanions)
+      );
+      // Verify token with server
+      fetch(`http://localhost:5000/api/session/${token}/verify`, {
+        method: "GET",
+      }).then((res) => {
+        if (res.status === 200) {
+          console.log("Token verified by server");
+          // Websocket connection to path /primary/:token
+          const socket = new WebSocket(`ws://localhost:5000/primary/${token}`);
+          socket.onopen = () => {
+            console.log("Socket connection established");
+          };
+          socket.onmessage = (event) => {
+            console.log(`Server says: ${event.data}`);
+            socket.send("Hey, server! I'm the primary device");
+          };
+          socket.onerror = (error) => {
+            console.log(`Socket encountered error:`, error);
+          };
+          socket.onclose = (event) => {
+            if (event.wasClean) {
+              console.log("Socket connection closed cleanly");
+            }
+            console.log(`Socket connection closed with code: ${event.code}`);
+          };
+        } else {
+          console.log("Token not verified", res.status);
+        }
+      });
+    } else {
+      console.log("Invalid token");
+    }
   };
 
   // Screen when system permission modal is shown

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import signal, { KeyHelper } from "signal-protocol-react-native";
 import * as SecureStore from "expo-secure-store";
+import { Buffer } from "buffer";
 
 import { AuthContext } from "../context/AuthContext";
 import { randomUUID } from "expo-crypto";
@@ -45,16 +46,16 @@ const LoginScreen = ({ navigation }) => {
     store.storePreKey(preKeyId, preKey.keyPair);
     store.storeSignedPreKey(signedPreKeyId, signedPreKey.keyPair);
     return {
-      identityKey: identity.pubKey,
+      identityKey: Buffer.from(identity.pubKey).toString("base64"),
       registrationId: registrationId,
       preKey: {
         keyId: preKeyId,
-        publicKey: preKey.keyPair.pubKey,
+        publicKey: Buffer.from(preKey.keyPair.pubKey).toString("base64"),
       },
       signedPreKey: {
         keyId: signedPreKeyId,
-        publicKey: signedPreKey.keyPair.pubKey,
-        signature: signedPreKey.signature,
+        publicKey: Buffer.from(signedPreKey.keyPair.pubKey).toString("base64"),
+        signature: Buffer.from(signedPreKey.signature).toString("base64"),
       },
     };
   };
@@ -72,20 +73,6 @@ const LoginScreen = ({ navigation }) => {
 
     // Clear login error
     setLoginError(false);
-
-    // // Generate key pair using elliptic curve cryptography
-    // const keyPair = await nacl.sign.keyPair();
-    // const { publicKey, secretKey } = keyPair;
-    // // Convert key pair to base64 encoded strings
-    // const base64EncodedPublic = nacl.util.encodeBase64(publicKey);
-    // const base64EncodedPrivate = nacl.util.encodeBase64(secretKey);
-    // // Convert key pair to Uint8Array
-    // const base64DecodedPublic = nacl.util.decodeBase64(base64EncodedPublic);
-    // const base64DecodedPrivate = nacl.util.decodeBase64(base64EncodedPrivate);
-
-    // // Store key pair in secure store
-    // await SecureStore.setItemAsync("publicKey", base64EncodedPublic);
-    // await SecureStore.setItemAsync("privateKey", base64EncodedPrivate);
 
     // Create signal protocol address object
     const signalProtocolAddress = new signal.SignalProtocolAddress(
@@ -117,8 +104,36 @@ const LoginScreen = ({ navigation }) => {
       `
     );
 
-    // Set user as authenticated
-    setIsAuthenticated(true);
+    // Send preKeyBundle to server
+    fetch(`http://localhost:5000/api/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username,
+        signalProtocolAddress: signalProtocolAddress.toString(),
+        preKeyBundle,
+      }),
+    }).then((res) => {
+      if (res.status === 200) {
+        console.log("User successfully logged in");
+        // Store username, signalProtocolAddress and IdentityKey in secure storage
+        SecureStore.setItemAsync("username", username);
+        SecureStore.setItemAsync(
+          "signalProtocolAddress",
+          signalProtocolAddress.toString()
+        );
+        SecureStore.setItemAsync(
+          "identityKey",
+          Buffer.from(preKeyBundle.identityKey).toString("base64")
+        );
+        // Set user as authenticated
+        setIsAuthenticated(true);
+      } else {
+        console.log("User login failed");
+      }
+    });
   };
 
   const handlePress = () => {
