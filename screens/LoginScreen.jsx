@@ -9,6 +9,7 @@ import {
   Keyboard,
 } from "react-native";
 import signal, { KeyHelper } from "signal-protocol-react-native";
+import signalStore from "../util/signalStore.js";
 import * as SecureStore from "expo-secure-store";
 import { Buffer } from "buffer";
 
@@ -79,12 +80,10 @@ const LoginScreen = ({ navigation }) => {
       username,
       randomUUID().toString()
     );
-    // Create a new store
-    const signalStore = new signal.SignalProtocolStore();
 
     // Set preKeyId and signedPreKeyId
-    const preKeyId = 1;
-    const signedPreKeyId = 1;
+    const preKeyId = randomUUID.toString();
+    const signedPreKeyId = randomUUID.toString();
     // Call the generateIdentity function to generate a new identity key pair
     await generateIdentity(signalStore);
     // Call the generatePreKeyBundle function to generate a new pre key bundle
@@ -104,8 +103,9 @@ const LoginScreen = ({ navigation }) => {
       `
     );
 
+    console.log(preKeyBundle);
     // Send preKeyBundle to server
-    fetch(`http://localhost:5000/api/auth/login`, {
+    fetch(`http://192.168.29.215:5000/api/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -128,6 +128,7 @@ const LoginScreen = ({ navigation }) => {
           "identityKey",
           Buffer.from(preKeyBundle.identityKey).toString("base64")
         );
+        SecureStore.setItemAsync("preKeyBundle", JSON.stringify(preKeyBundle));
         // Set user as authenticated
         setIsAuthenticated(true);
       } else {

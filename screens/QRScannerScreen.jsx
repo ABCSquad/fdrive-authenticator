@@ -4,6 +4,9 @@ import { BarCodeScanner } from "expo-barcode-scanner";
 import NoPermissionModal from "../components/NoPermissionModal";
 import { Camera } from "expo-camera";
 import * as SecureStore from "expo-secure-store";
+import signal from "signal-protocol-react-native";
+import signalStore from "../util/signalStore.js";
+import { Buffer } from "buffer";
 
 const QRScannerScreen = ({ navigation }) => {
   const [hasPermission, setHasPermission] = useState(null);
@@ -42,19 +45,55 @@ const QRScannerScreen = ({ navigation }) => {
         JSON.stringify(updatedCompanions)
       );
       // Verify token with server
-      fetch(`http://localhost:5000/api/session/${token}/verify`, {
+      fetch(`http://192.168.29.215:5000/api/session/${token}/verify`, {
         method: "GET",
       }).then((res) => {
         if (res.status === 200) {
           console.log("Token verified by server");
           // Websocket connection to path /primary/:token
-          const socket = new WebSocket(`ws://localhost:5000/primary/${token}`);
+          const socket = new WebSocket(
+            `ws://192.168.29.215:5000/primary/${token}`
+          );
           socket.onopen = () => {
             console.log("Socket connection established");
           };
-          socket.onmessage = (event) => {
-            console.log(`Server says: ${event.data}`);
-            socket.send("Hey, server! I'm the primary device");
+          socket.onmessage = async (event) => {
+            // Determine type of message
+            const receivedMessage = JSON.parse(event.data);
+            if (receivedMessage.type === "greeting") {
+              console.log(`Server says: ${receivedMessage.message}`);
+            }
+            if (receivedMessage.type === "preKeyWhisperMessage") {
+              console.log("Received preKeyWhisperMessage", receivedMessage);
+              const address = await SecureStore.getItemAsync(
+                "signalProtocolAddress"
+              );
+              const sessionCipher = new signal.SessionCipher(
+                signalStore,
+                address
+              );
+              console.log(receivedMessage.ciphertext);
+              sessionCipher
+                .decryptPreKeyWhisperMessage(
+                  receivedMessage.ciphertext,
+                  "binary"
+                )
+                .then((plaintext) =>
+                  console.log("Decryption successful", plaintext)
+                )
+                .catch((err) => console.log("Failed to decrypt", err));
+              return;
+            }
+            // Send signal related information to server
+            const message = {
+              type: "initialPrimaryX3DHMessage",
+              username: await SecureStore.getItemAsync("username"),
+              signalProtocolAddress: await SecureStore.getItemAsync(
+                "signalProtocolAddress"
+              ),
+              deviceDetails: "Test Device, details",
+            };
+            socket.send(JSON.stringify(message));
           };
           socket.onerror = (error) => {
             console.log(`Socket encountered error:`, error);
