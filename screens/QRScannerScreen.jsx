@@ -64,22 +64,23 @@ const QRScannerScreen = ({ navigation }) => {
               console.log(`Server says: ${receivedMessage.message}`);
             }
             if (receivedMessage.type === "preKeyWhisperMessage") {
-              console.log("Received preKeyWhisperMessage", receivedMessage);
               const address = await SecureStore.getItemAsync(
                 "signalProtocolAddress"
               );
               const sessionCipher = new signal.SessionCipher(
                 signalStore,
-                address
+                signal.SignalProtocolAddress.fromString(address)
               );
-              console.log(receivedMessage.ciphertext);
               sessionCipher
                 .decryptPreKeyWhisperMessage(
-                  receivedMessage.ciphertext,
+                  receivedMessage.preKeyWhisperMessage.body,
                   "binary"
                 )
                 .then((plaintext) =>
-                  console.log("Decryption successful", plaintext)
+                  console.log(
+                    "Decryption successful",
+                    Buffer.from(plaintext).toString("utf8")
+                  )
                 )
                 .catch((err) => console.log("Failed to decrypt", err));
               return;

@@ -27,8 +27,7 @@ const LoginScreen = ({ navigation }) => {
       KeyHelper.generateIdentityKeyPair(),
       KeyHelper.generateRegistrationId(),
     ]);
-    store.put("identityKey", result[0]);
-    store.put("registrationId", result[1]);
+    return result;
   };
 
   const generatePreKeyBundle = async (store, preKeyId, signedPreKeyId) => {
@@ -36,18 +35,18 @@ const LoginScreen = ({ navigation }) => {
       store.getIdentityKeyPair(),
       store.getLocalRegistrationId(),
     ]);
-    var identity = result[0];
+    var identityKey = result[0];
     var registrationId = result[1];
     const keys = await Promise.all([
       KeyHelper.generatePreKey(preKeyId),
-      KeyHelper.generateSignedPreKey(identity, signedPreKeyId),
+      KeyHelper.generateSignedPreKey(identityKey, signedPreKeyId),
     ]);
     var preKey = keys[0];
     var signedPreKey = keys[1];
-    store.storePreKey(preKeyId, preKey.keyPair);
-    store.storeSignedPreKey(signedPreKeyId, signedPreKey.keyPair);
+    await store.storePreKey(preKeyId, preKey.keyPair);
+    await store.storeSignedPreKey(signedPreKeyId, signedPreKey.keyPair);
     return {
-      identityKey: Buffer.from(identity.pubKey).toString("base64"),
+      identityKey: Buffer.from(identityKey.pubKey).toString("base64"),
       registrationId: registrationId,
       preKey: {
         keyId: preKeyId,
@@ -76,22 +75,27 @@ const LoginScreen = ({ navigation }) => {
     setLoginError(false);
 
     // Create signal protocol address object
-    const signalProtocolAddress = new signal.SignalProtocolAddress(
-      username,
-      randomUUID().toString()
-    );
+    const signalProtocolAddress = new signal.SignalProtocolAddress(username, 1);
 
     // Set preKeyId and signedPreKeyId
-    const preKeyId = randomUUID.toString();
-    const signedPreKeyId = randomUUID.toString();
+    const preKeyId = 1337;
+    const signedPreKeyId = 1;
     // Call the generateIdentity function to generate a new identity key pair
-    await generateIdentity(signalStore);
+    const [identityKey, registrationId] = await generateIdentity(signalStore);
+    // Save the identity key pair and registration id in the signal store
+    await signalStore.saveIdentity(
+      signalProtocolAddress.toString(),
+      identityKey
+    );
+    signalStore.put("registrationId", registrationId);
+    signalStore.put("identityKey", identityKey);
     // Call the generatePreKeyBundle function to generate a new pre key bundle
     const preKeyBundle = await generatePreKeyBundle(
       signalStore,
       preKeyId,
       signedPreKeyId
     );
+    console.log("Pre Key Bundle: ", preKeyBundle);
 
     // Alert with all information
     alert(
@@ -103,7 +107,6 @@ const LoginScreen = ({ navigation }) => {
       `
     );
 
-    console.log(preKeyBundle);
     // Send preKeyBundle to server
     fetch(`http://192.168.29.215:5000/api/auth/login`, {
       method: "POST",
@@ -128,7 +131,6 @@ const LoginScreen = ({ navigation }) => {
           "identityKey",
           Buffer.from(preKeyBundle.identityKey).toString("base64")
         );
-        SecureStore.setItemAsync("preKeyBundle", JSON.stringify(preKeyBundle));
         // Set user as authenticated
         setIsAuthenticated(true);
       } else {
