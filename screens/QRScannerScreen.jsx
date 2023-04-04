@@ -76,12 +76,21 @@ const QRScannerScreen = ({ navigation }) => {
                   receivedMessage.preKeyWhisperMessage.body,
                   "binary"
                 )
-                .then((plaintext) =>
+                .then((plaintext) => {
                   console.log(
                     "Decryption successful",
                     Buffer.from(plaintext).toString("utf8")
-                  )
-                )
+                  );
+                  console.log(sessionCipher);
+                  socket.send(
+                    JSON.stringify({
+                      type: "X3DHCompletionMessage",
+                      data: {
+                        startTime: new Date(),
+                      },
+                    })
+                  );
+                })
                 .catch((err) => console.log("Failed to decrypt", err));
               return;
             }
