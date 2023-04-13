@@ -23,7 +23,7 @@ const ScreenStack = () => {
   React.useEffect(() => {
     // Check if user is authenticated
     const checkAuth = async () => {
-      const identityKey = await SecureStore.getItemAsync("identityKey");
+      const identityKey = await SecureStore.getItemAsync("identityPrivKey");
       if (identityKey) {
         setIsAuthenticated(true);
       }
@@ -32,10 +32,8 @@ const ScreenStack = () => {
   }, []);
 
   const handleLogout = async () => {
-    await SecureStore.deleteItemAsync("username");
-    await SecureStore.deleteItemAsync("identityKey");
-    await SecureStore.deleteItemAsync("signalProtocolAddress");
-    await SecureStore.deleteItemAsync("companions");
+    await SecureStore.deleteItemAsync("identityPubKey");
+    await SecureStore.deleteItemAsync("identityPrivKey");
     setIsAuthenticated(false);
   };
 

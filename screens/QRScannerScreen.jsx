@@ -36,88 +36,111 @@ const QRScannerScreen = ({ navigation }) => {
     const hexKeyRegex = /^[0-9a-fA-F]{32}$/;
     if (hexKeyRegex.test(token)) {
       setScanned(true);
-      // Store identityKey of companion in secure store
-      let companions = await SecureStore.getItemAsync("companions");
-      if (!companions) companions = JSON.stringify([]);
-      const updatedCompanions = [...JSON.parse(companions), token];
-      await SecureStore.setItemAsync(
-        "companions",
-        JSON.stringify(updatedCompanions)
-      );
-      // Verify token with server
-      fetch(`http://192.168.29.215:5000/api/session/${token}/verify`, {
-        method: "GET",
-      }).then((res) => {
-        if (res.status === 200) {
+      // Send websocket request to server
+      const socket = new WebSocket(`ws://192.168.29.215:7071/primary/${token}`);
+      socket.onopen = () => {
+        console.log("Socket connection established");
+      };
+      socket.onmessage = async (event) => {
+        // Determine type of message
+        const message = JSON.parse(event.data);
+        if (message.type === "success") {
           console.log("Token verified by server");
-          // Websocket connection to path /primary/:token
-          const socket = new WebSocket(
-            `ws://192.168.29.215:5000/primary/${token}`
-          );
-          socket.onopen = () => {
-            console.log("Socket connection established");
+          // Send information to server
+          const data = {
+            type: "primaryInformation",
+            username: await SecureStore.getItemAsync("username"),
+            signalProtocolAddress: await SecureStore.getItemAsync(
+              "signalProtocolAddress"
+            ),
+            deviceDetails: "iPhone 12",
           };
-          socket.onmessage = async (event) => {
-            // Determine type of message
-            const receivedMessage = JSON.parse(event.data);
-            if (receivedMessage.type === "greeting") {
-              console.log(`Server says: ${receivedMessage.message}`);
-            }
-            if (receivedMessage.type === "preKeyWhisperMessage") {
-              const address = await SecureStore.getItemAsync(
-                "signalProtocolAddress"
-              );
-              const sessionCipher = new signal.SessionCipher(
-                signalStore,
-                signal.SignalProtocolAddress.fromString(address)
-              );
-              sessionCipher
-                .decryptPreKeyWhisperMessage(
-                  receivedMessage.preKeyWhisperMessage.body,
-                  "binary"
-                )
-                .then((plaintext) => {
-                  console.log(
-                    "Decryption successful",
-                    Buffer.from(plaintext).toString("utf8")
-                  );
-                  console.log(sessionCipher);
-                  socket.send(
-                    JSON.stringify({
-                      type: "X3DHCompletionMessage",
-                      data: {
-                        startTime: new Date(),
-                      },
-                    })
-                  );
-                })
-                .catch((err) => console.log("Failed to decrypt", err));
-              return;
-            }
-            // Send signal related information to server
-            const message = {
-              type: "initialPrimaryX3DHMessage",
-              username: await SecureStore.getItemAsync("username"),
-              signalProtocolAddress: await SecureStore.getItemAsync(
-                "signalProtocolAddress"
-              ),
-              deviceDetails: "Test Device, details",
-            };
-            socket.send(JSON.stringify(message));
-          };
-          socket.onerror = (error) => {
-            console.log(`Socket encountered error:`, error);
-          };
-          socket.onclose = (event) => {
-            if (event.wasClean) {
-              console.log("Socket connection closed cleanly");
-            }
-            console.log(`Socket connection closed with code: ${event.code}`);
-          };
-        } else {
-          console.log("Token not verified", res.status);
+          socket.send(JSON.stringify(data));
         }
-      });
+      };
+
+      // // Store identityKey of companion in secure store
+      // let companions = await SecureStore.getItemAsync("companions");
+      // if (!companions) companions = JSON.stringify([]);
+      // const updatedCompanions = [...JSON.parse(companions), token];
+      // await SecureStore.setItemAsync(
+      //   "companions",
+      //   JSON.stringify(updatedCompanions)
+      // );
+      // // Verify token with server
+      // fetch(`http://192.168.29.215:5000/api/session/${token}/verify`, {
+      //   method: "GET",
+      // }).then((res) => {
+      //   if (res.status === 200) {
+      //     console.log("Token verified by server");
+      //     // Websocket connection to path /primary/:token
+      //     const socket = new WebSocket(
+      //       `ws://192.168.29.215:5000/primary/${token}`
+      //     );
+      //     socket.onopen = () => {
+      //       console.log("Socket connection established");
+      //     };
+      //     socket.onmessage = async (event) => {
+      //       // Determine type of message
+      //       const receivedMessage = JSON.parse(event.data);
+      //       if (receivedMessage.type === "greeting") {
+      //         console.log(`Server says: ${receivedMessage.message}`);
+      //       }
+      //       if (receivedMessage.type === "preKeyWhisperMessage") {
+      //         const address = await SecureStore.getItemAsync(
+      //           "signalProtocolAddress"
+      //         );
+      //         const sessionCipher = new signal.SessionCipher(
+      //           signalStore,
+      //           signal.SignalProtocolAddress.fromString(address)
+      //         );
+      //         sessionCipher
+      //           .decryptPreKeyWhisperMessage(
+      //             receivedMessage.preKeyWhisperMessage.body,
+      //             "binary"
+      //           )
+      //           .then((plaintext) => {
+      //             console.log(
+      //               "Decryption successful",
+      //               Buffer.from(plaintext).toString("utf8")
+      //             );
+      //             console.log(sessionCipher);
+      //             socket.send(
+      //               JSON.stringify({
+      //                 type: "X3DHCompletionMessage",
+      //                 data: {
+      //                   startTime: new Date(),
+      //                 },
+      //               })
+      //             );
+      //           })
+      //           .catch((err) => console.log("Failed to decrypt", err));
+      //         return;
+      //       }
+      //       // Send signal related information to server
+      //       const message = {
+      //         type: "initialPrimaryX3DHMessage",
+      //         username: await SecureStore.getItemAsync("username"),
+      //         signalProtocolAddress: await SecureStore.getItemAsync(
+      //           "signalProtocolAddress"
+      //         ),
+      //         deviceDetails: "Test Device, details",
+      //       };
+      //       socket.send(JSON.stringify(message));
+      //     };
+      //     socket.onerror = (error) => {
+      //       console.log(`Socket encountered error:`, error);
+      //     };
+      //     socket.onclose = (event) => {
+      //       if (event.wasClean) {
+      //         console.log("Socket connection closed cleanly");
+      //       }
+      //       console.log(`Socket connection closed with code: ${event.code}`);
+      //     };
+      //   } else {
+      //     console.log("Token not verified", res.status);
+      //   }
+      // });
     } else {
       console.log("Invalid token");
     }
