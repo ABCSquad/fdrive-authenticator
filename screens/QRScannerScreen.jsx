@@ -89,6 +89,19 @@ const QRScannerScreen = ({ navigation }) => {
             "companionDeviceList",
             JSON.stringify(companionDeviceList)
           );
+
+          const whisperMessage = Buffer.from(
+            "Take a sad song and make it better"
+          ).buffer;
+          const ciphertext = await sessionCipher.encrypt(whisperMessage);
+          socket.send(
+            JSON.stringify({
+              type: "whisperMessage",
+              data: {
+                whisperMessage: ciphertext,
+              },
+            })
+          );
         }
       };
     } else {
