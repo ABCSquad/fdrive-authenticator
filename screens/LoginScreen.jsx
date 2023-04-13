@@ -37,6 +37,8 @@ const LoginScreen = ({ navigation }) => {
         "identityPrivKey",
         Buffer.from(result[0].privKey).toString("base64")
       );
+      // Save registration id to secure store
+      SecureStore.setItemAsync("registrationId", result[1].toString());
     });
   };
 
@@ -109,7 +111,7 @@ const LoginScreen = ({ navigation }) => {
       })
       .then((preKeyBundle) => {
         // Send preKeyBundle to server
-        fetch(`http://192.168.29.215:5000/api/auth/login`, {
+        fetch(`http://localhost:5000/api/auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
