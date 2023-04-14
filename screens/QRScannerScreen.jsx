@@ -4,9 +4,10 @@ import { BarCodeScanner } from "expo-barcode-scanner";
 import NoPermissionModal from "../components/NoPermissionModal";
 import { Camera } from "expo-camera";
 import * as SecureStore from "expo-secure-store";
-import signal from "signal-protocol-react-native";
+import signal, { KeyHelper } from "signal-protocol-react-native";
 import signalStore from "../util/signalStore.js";
 import { Buffer } from "buffer";
+import _ from "lodash";
 
 const QRScannerScreen = ({ navigation }) => {
   const [hasPermission, setHasPermission] = useState(null);
@@ -14,6 +15,41 @@ const QRScannerScreen = ({ navigation }) => {
   const [data, setData] = useState(
     " Open web.whatapp.com on your browser or any device and scan the QRCode."
   );
+
+  const generatePreKeyBundle = async (store, preKeyId, signedPreKeyId) => {
+    return Promise.all([
+      store.getIdentityKeyPair(),
+      store.getLocalRegistrationId(),
+    ]).then(function (result) {
+      var identity = result[0];
+      var registrationId = result[1];
+
+      return Promise.all([
+        KeyHelper.generatePreKey(preKeyId),
+        KeyHelper.generateSignedPreKey(identity, signedPreKeyId),
+      ]).then(function (keys) {
+        var preKey = keys[0];
+        var signedPreKey = keys[1];
+
+        store.storePreKey(preKeyId, preKey.keyPair);
+        store.storeSignedPreKey(signedPreKeyId, signedPreKey.keyPair);
+
+        return {
+          identityKey: identity.pubKey,
+          registrationId: registrationId,
+          preKey: {
+            keyId: preKeyId,
+            publicKey: preKey.keyPair.pubKey,
+          },
+          signedPreKey: {
+            keyId: signedPreKeyId,
+            publicKey: signedPreKey.keyPair.pubKey,
+            signature: signedPreKey.signature,
+          },
+        };
+      });
+    });
+  };
 
   const askForCameraPermission = () => {
     (async () => {
@@ -119,8 +155,49 @@ const QRScannerScreen = ({ navigation }) => {
               },
             })
           );
+
+          // Create new preKeyId and signedPreKeyId
+          const preKeyId = Math.floor(Math.random() * 1000000);
+          const signedPreKeyId = Math.floor(Math.random() * 1000000);
+          // Create a new preKeyBundle for next companion device
+          const preKeyBundle = await generatePreKeyBundle(
+            signalStore,
+            preKeyId,
+            signedPreKeyId
+          );
+          // Send preKeyBundle to server
+          socket.send(
+            JSON.stringify({
+              type: "preKeyBundleUpdate",
+              data: {
+                username: await SecureStore.getItemAsync("username"),
+                newPreKeyBundle: {
+                  identityKey: Buffer.from(preKeyBundle.identityKey).toString(
+                    "base64"
+                  ),
+                  registrationId: preKeyBundle.registrationId,
+                  preKey: {
+                    keyId: preKeyId,
+                    publicKey: Buffer.from(
+                      preKeyBundle.preKey.publicKey
+                    ).toString("base64"),
+                  },
+                  signedPreKey: {
+                    keyId: signedPreKeyId,
+                    publicKey: Buffer.from(
+                      preKeyBundle.signedPreKey.publicKey
+                    ).toString("base64"),
+                    signature: Buffer.from(
+                      preKeyBundle.signedPreKey.signature
+                    ).toString("base64"),
+                  },
+                },
+              },
+            })
+          );
+
           // Create copy of store contents
-          let storeContents = Object.assign({}, signalStore.store);
+          let storeContents = _.cloneDeep(signalStore.store);
           // Convert ArrayBuffer identityKeyPair to base64
           storeContents.identityKey.pubKey = Buffer.from(
             storeContents.identityKey.pubKey
@@ -133,6 +210,7 @@ const QRScannerScreen = ({ navigation }) => {
             "signalStore",
             JSON.stringify(storeContents)
           );
+          console.log("Unchanged store: ", signalStore.store);
         }
       };
     } else {
