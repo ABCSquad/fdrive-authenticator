@@ -83,7 +83,10 @@ const QRScannerScreen = ({ navigation }) => {
             [];
 
           // Add new device to list
-          companionDeviceList.push(message.data.deviceInfo);
+          companionDeviceList.push({
+            address: message.data.companionSignalProtocolAddress,
+            deviceInfo: message.data.deviceInfo,
+          });
           // Save new device list to secure store
           await SecureStore.setItemAsync(
             "companionDeviceList",
@@ -115,6 +118,20 @@ const QRScannerScreen = ({ navigation }) => {
                 whisperMessage: ciphertext,
               },
             })
+          );
+          // Create copy of store contents
+          let storeContents = Object.assign({}, signalStore.store);
+          // Convert ArrayBuffer identityKeyPair to base64
+          storeContents.identityKey.pubKey = Buffer.from(
+            storeContents.identityKey.pubKey
+          ).toString("base64");
+          storeContents.identityKey.privKey = Buffer.from(
+            storeContents.identityKey.privKey
+          ).toString("base64");
+          // Save store to secure store
+          await SecureStore.setItemAsync(
+            "signalStore",
+            JSON.stringify(storeContents)
           );
         }
       };

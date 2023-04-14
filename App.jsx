@@ -35,6 +35,11 @@ const ScreenStack = () => {
   const handleLogout = async () => {
     await SecureStore.deleteItemAsync("identityPubKey");
     await SecureStore.deleteItemAsync("identityPrivKey");
+    await SecureStore.deleteItemAsync("registrationId");
+    await SecureStore.deleteItemAsync("username");
+    await SecureStore.deleteItemAsync("signalProtocolAddress");
+    await SecureStore.deleteItemAsync("companionDeviceList");
+    await SecureStore.deleteItemAsync("signalStore");
     setIsAuthenticated(false);
   };
 
