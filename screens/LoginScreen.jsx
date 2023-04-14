@@ -111,7 +111,7 @@ const LoginScreen = ({ navigation }) => {
       })
       .then((preKeyBundle) => {
         // Send preKeyBundle to server
-        fetch(`http://localhost:5000/api/auth/login`, {
+        fetch(`http://192.168.29.215:5000/api/auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

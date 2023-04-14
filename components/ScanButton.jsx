@@ -15,6 +15,9 @@ export default function ScanButton({ navigation }) {
     if (option === 1) {
       navigation.navigate("QRScanner");
     }
+    if (option === 2) {
+      navigation.navigate("Vault");
+    }
     setShowDropdown(false);
   };
 
@@ -53,7 +56,7 @@ export default function ScanButton({ navigation }) {
               className="items-end rounded-lg my-2 bg-white border border-border shadow-sm shadow-gray-200"
             >
               <Text className="text-gray-900 text-base px-3 py-2">
-                Choose a QR image
+                View Vault
               </Text>
             </TouchableOpacity>
           </View>

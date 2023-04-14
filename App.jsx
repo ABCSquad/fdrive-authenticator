@@ -11,6 +11,7 @@ import "expo-random";
 import HomeScreen from "./screens/HomeScreen";
 import QRScannerScreen from "./screens/QRScannerScreen";
 import LoginScreen from "./screens/LoginScreen";
+import VaultScreen from "./screens/VaultScreen";
 
 import { AuthContext } from "./context/AuthContext";
 import { Button } from "react-native";
@@ -57,6 +58,11 @@ const ScreenStack = () => {
                 name="QRScanner"
                 component={QRScannerScreen}
                 options={{ title: "Scan QR Code" }}
+              />
+              <Stack.Screen
+                name="Vault"
+                component={VaultScreen}
+                options={{ title: "Vault" }}
               />
             </>
           ) : (

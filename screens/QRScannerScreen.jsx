@@ -37,7 +37,7 @@ const QRScannerScreen = ({ navigation }) => {
     if (hexKeyRegex.test(token)) {
       setScanned(true);
       // Send websocket request to server
-      const socket = new WebSocket(`ws://localhost:7071/primary/${token}`);
+      const socket = new WebSocket(`ws://192.168.29.215:7071/primary/${token}`);
       socket.onopen = () => {
         console.log("Socket connection established");
       };
@@ -89,6 +89,20 @@ const QRScannerScreen = ({ navigation }) => {
             "companionDeviceList",
             JSON.stringify(companionDeviceList)
           );
+          // Send request to server to add companion to user devices
+          fetch("http://192.168.29.215:5000/api/user/companion/add", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username: await SecureStore.getItemAsync("username"),
+              companionDevice: {
+                address: message.data.companionSignalProtocolAddress,
+                deviceInfo: message.data.deviceInfo,
+              },
+            }),
+          });
 
           const whisperMessage = Buffer.from(
             "Take a sad song and make it better"
@@ -101,20 +115,6 @@ const QRScannerScreen = ({ navigation }) => {
                 whisperMessage: ciphertext,
               },
             })
-          );
-          // Make a copy of the store contents
-          let storeContents = Object.assign({}, signalStore.store);
-          // Convert keys from ArrayBuffers to base64 strings
-          storeContents.identityKey.pubKey = Buffer.from(
-            storeContents.identityKey.pubKey
-          ).toString("base64");
-          storeContents.identityKey.privKey = Buffer.from(
-            storeContents.identityKey.privKey
-          ).toString("base64");
-          // Store JSON serialized in secure store
-          await SecureStore.setItemAsync(
-            "signalStore",
-            JSON.stringify(storeContents)
           );
         }
       };
