@@ -64,6 +64,7 @@ const VaultScreen = ({ navigation }) => {
       await reconstructStore();
       const pendingKeys = await checkForNewFileKeys();
       if (pendingKeys && pendingKeys instanceof Array) {
+        console.log(`Found ${pendingKeys.length} new keys to encrypt`);
         const companionAddressList = companionDeviceList.map(
           (companionDevice) => companionDevice.address
         );
@@ -80,7 +81,6 @@ const VaultScreen = ({ navigation }) => {
             const presentCompanions = companionAddressList.filter((address) => {
               return allKeyCompanions.includes(address);
             });
-            console.log(presentCompanions, missingCompanions);
             if (missingCompanions.length === 0) return;
             // Decrypt key using present companion
             const presentCompanionAddress = keyObject.keys[0].companionAddress;
@@ -100,7 +100,6 @@ const VaultScreen = ({ navigation }) => {
             const decryptedKey = await sessionCipherObj[
               presentCompanionAddress
             ].decryptWhisperMessage(presentCompanionKey.body, "binary");
-            console.log(Buffer.from(decryptedKey).toString("utf8"));
             // Encrypt key for missing companions and add them to responseToSend
             await Promise.all(
               missingCompanions.map(async (missingAddress) => {
@@ -148,6 +147,8 @@ const VaultScreen = ({ navigation }) => {
         if (response.ok) {
           console.log("Keys updated successfully");
         }
+      } else {
+        console.log("No new keys to encrypt");
       }
     };
     onLoad();

@@ -91,21 +91,24 @@ const LoginScreen = ({ navigation }) => {
     // Clear login error
     setLoginError(false);
 
-    // Create signal protocol address object
-    const signalProtocolAddress = new signal.SignalProtocolAddress(username, 1);
-    // Store username and signal prtocol address in secure store
-    SecureStore.setItemAsync("username", username);
-    SecureStore.setItemAsync(
-      "signalProtocolAddress",
-      new signal.SignalProtocolAddress(username, 1).toString()
-    );
-
+    let signalProtocolAddress;
     // Set preKeyId and signedPreKeyId
     const preKeyId = 1337;
     const signedPreKeyId = 1;
     // Call the generateIdentity function to generate a new identity key pair
     await generateIdentity(signalStore)
-      .then(() => {
+      .then(async () => {
+        // Create signal protocol address object
+        signalProtocolAddress = new signal.SignalProtocolAddress(
+          username,
+          await signalStore.getLocalRegistrationId()
+        );
+        // Store username and signal prtocol address in secure store
+        SecureStore.setItemAsync("username", username);
+        SecureStore.setItemAsync(
+          "signalProtocolAddress",
+          signalProtocolAddress.toString()
+        );
         // Call the generatePreKeyBundle function to generate a new pre key bundle
         return generatePreKeyBundle(signalStore, preKeyId, signedPreKeyId);
       })

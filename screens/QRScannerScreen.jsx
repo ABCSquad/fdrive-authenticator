@@ -210,7 +210,6 @@ const QRScannerScreen = ({ navigation }) => {
             "signalStore",
             JSON.stringify(storeContents)
           );
-          console.log("Unchanged store: ", signalStore.store);
         }
       };
     } else {
