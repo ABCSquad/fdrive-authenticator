@@ -1,27 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
-import { View, SafeAreaView, Button } from "react-native";
+import { View, SafeAreaView, Text } from "react-native";
 import Navbar from "../components/Navbar";
 import Device from "../components/Device";
 import ScanButton from "../components/ScanButton";
 import * as SecureStore from "expo-secure-store";
 
 const HomeScreen = ({ navigation }) => {
-  const [deviceArr, setDeviceArr] = useState([
-    {
-      name: "Device 1",
-      version: "1.0.0",
-      os: "Windows",
-      lastLogin: "2021-05-01 12:00:00",
-      location: "Mumbai, IN",
-    },
-  ]);
+  const [deviceArr, setDeviceArr] = useState([]);
 
   // Get companion device list from secure storage
   useEffect(() => {
     const getCompanionDevices = async () => {
       const companionDevices = await SecureStore.getItemAsync(
-        "companionDevices"
+        "companionDeviceList"
       );
       if (companionDevices) {
         setDeviceArr(JSON.parse(companionDevices));
@@ -29,6 +21,10 @@ const HomeScreen = ({ navigation }) => {
     };
     getCompanionDevices();
   }, []);
+
+  useEffect(() => {
+    console.log("Device list updated", deviceArr);
+  }, [deviceArr]);
 
   return (
     <>
@@ -39,16 +35,22 @@ const HomeScreen = ({ navigation }) => {
 
         <View className="grow w-full items-center bg-white">
           <View className="w-full">
-            {deviceArr.map((device, index) => (
-              <Device
-                key={index}
-                name={device.name}
-                version={device.version}
-                os={device.os}
-                lastLogin={device.lastLogin}
-                location={device.location}
-              />
-            ))}
+            {deviceArr.length > 0 ? (
+              deviceArr.map(({ deviceInfo }, index) => (
+                <Device
+                  key={index}
+                  name={deviceInfo.name}
+                  version={deviceInfo.version}
+                  os={deviceInfo.os.family}
+                  lastLogin={deviceInfo.lastLogin}
+                  location={deviceInfo.location}
+                />
+              ))
+            ) : (
+              <View className="justify-center items-center">
+                <Text>No devices found</Text>
+              </View>
+            )}
           </View>
         </View>
 

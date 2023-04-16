@@ -247,6 +247,8 @@ const QRScannerScreen = ({ navigation }) => {
             "signalStore",
             JSON.stringify(storeContents)
           );
+          // Navigate back to home screen
+          navigation.navigate("Home");
         }
       };
     } else {

@@ -7,7 +7,7 @@ export default function Device({ name, version, os, lastLogin, location }) {
       <View className="w-4/5">
         <View className="px-2 py-1 w-full">
           <Text className="text-base font-bold">
-            {name}, {os}
+            {name} ({os})
           </Text>
           <Text className="text-base">Last login: {lastLogin}</Text>
           <Text className="text-base">{location}</Text>
