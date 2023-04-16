@@ -5,6 +5,7 @@ import { Buffer } from "buffer";
 import * as SecureStore from "expo-secure-store";
 import signalStore from "../util/signalStore.js";
 import signal from "signal-protocol-react-native";
+import _ from "lodash";
 
 const VaultScreen = ({ navigation }) => {
   // Check if new file keys need to be encrypted for companions
@@ -52,6 +53,22 @@ const VaultScreen = ({ navigation }) => {
         );
       });
     };
+    const storeSignalStore = async (signalStore) => {
+      // Create copy of store contents
+      let storeContents = _.cloneDeep(signalStore.store);
+      // Convert ArrayBuffer identityKeyPair to base64
+      storeContents.identityKey.pubKey = Buffer.from(
+        storeContents.identityKey.pubKey
+      ).toString("base64");
+      storeContents.identityKey.privKey = Buffer.from(
+        storeContents.identityKey.privKey
+      ).toString("base64");
+      // Save store to secure store
+      await SecureStore.setItemAsync(
+        "signalStore",
+        JSON.stringify(storeContents)
+      );
+    };
     const onLoad = async () => {
       // Create global response to send to server
       let missingCompanionsResponseToSend = {};
@@ -60,6 +77,7 @@ const VaultScreen = ({ navigation }) => {
       companionDeviceList = JSON.parse(
         await SecureStore.getItemAsync("companionDeviceList")
       );
+      // Reconstruct signal store
       await reconstructStore();
       const pendingKeys = await checkForNewFileKeys();
       if (pendingKeys && pendingKeys instanceof Array) {
@@ -97,18 +115,23 @@ const VaultScreen = ({ navigation }) => {
             const presentCompanionAddress =
               pendingKeyObject.keys[0].companionAddress;
             const presentCompanionKey = pendingKeyObject.keys[0].key;
+            // Create sessionCipher for present companion
             const sessionCipher = new signal.SessionCipher(
               signalStore,
               signal.SignalProtocolAddress.fromString(presentCompanionAddress)
             );
+            // Reset store after decryption
+            await reconstructStore();
             // Decrypt key using present companion
             const decryptedKey = await sessionCipher.decryptWhisperMessage(
               presentCompanionKey.body,
               "binary"
             );
+            console.log(Buffer.from(decryptedKey).toString("utf8"));
             // Encrypt key for missing companions and add them to responseToSend
             await Promise.all([
               ...missingCompanions.map(async (missingAddress) => {
+                // Create sessionCipher for missing companion
                 const sessionCipher = new signal.SessionCipher(
                   signalStore,
                   signal.SignalProtocolAddress.fromString(missingAddress)
@@ -128,10 +151,12 @@ const VaultScreen = ({ navigation }) => {
               }),
               // Repeat for sameChainEncryptedCompanions
               ...sameChainEncryptedCompanions.map(async (existingAddress) => {
+                // Update signalStore with content in SecureStorage
                 const sessionCipher = new signal.SessionCipher(
                   signalStore,
                   signal.SignalProtocolAddress.fromString(existingAddress)
                 );
+
                 // Encrypt key for existing companion
                 const encryptedKey = await sessionCipher.encrypt(
                   Buffer.from(decryptedKey).buffer
@@ -172,6 +197,8 @@ const VaultScreen = ({ navigation }) => {
         }
         if (response.ok) {
           console.log("Keys updated successfully");
+          // Update store content in SecureStorage
+          await storeSignalStore(signalStore);
         }
       } else {
         console.log("No new keys to encrypt");
