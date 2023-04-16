@@ -53,10 +53,9 @@ const VaultScreen = ({ navigation }) => {
       });
     };
     const onLoad = async () => {
-      // Create global variable for sessionCiphers
-      let sessionCipherObj = {};
       // Create global response to send to server
-      let responseToSend = {};
+      let missingCompanionsResponseToSend = {};
+      let existingCompanionsResponseToSend = {};
       // Get companion device list from secure store
       companionDeviceList = JSON.parse(
         await SecureStore.getItemAsync("companionDeviceList")
@@ -70,8 +69,8 @@ const VaultScreen = ({ navigation }) => {
         );
         // Iterate over pending keys and encrypt them for companions
         await Promise.all(
-          pendingKeys.map(async (keyObject) => {
-            const allKeyCompanions = keyObject.keys.map(
+          pendingKeys.map(async (pendingKeyObject) => {
+            const allKeyCompanions = pendingKeyObject.keys.map(
               (key) => key.companionAddress
             );
             // Find which companion addresses are not present
@@ -81,53 +80,79 @@ const VaultScreen = ({ navigation }) => {
             const presentCompanions = companionAddressList.filter((address) => {
               return allKeyCompanions.includes(address);
             });
-            if (missingCompanions.length === 0) return;
+            // Push address of companion with key that has sameChainEncrypted as true
+            let sameChainEncryptedCompanions = pendingKeyObject.keys.filter(
+              (key) => key.sameChainEncrypted
+            );
+            sameChainEncryptedCompanions = sameChainEncryptedCompanions.map(
+              (key) => key.companionAddress
+            );
+            console.log(missingCompanions, sameChainEncryptedCompanions);
+            if (
+              missingCompanions.length === 0 &&
+              sameChainEncryptedCompanions.length === 0
+            )
+              return;
             // Decrypt key using present companion
-            const presentCompanionAddress = keyObject.keys[0].companionAddress;
-            const presentCompanionKey = keyObject.keys[0].key;
-            // Check if sessionCipher for companion exists
-            if (!sessionCipherObj[presentCompanionAddress]) {
-              // Create sessionCipher for companion
-              sessionCipherObj[presentCompanionAddress] =
-                new signal.SessionCipher(
-                  signalStore,
-                  signal.SignalProtocolAddress.fromString(
-                    presentCompanionAddress
-                  )
-                );
-            }
+            const presentCompanionAddress =
+              pendingKeyObject.keys[0].companionAddress;
+            const presentCompanionKey = pendingKeyObject.keys[0].key;
+            const sessionCipher = new signal.SessionCipher(
+              signalStore,
+              signal.SignalProtocolAddress.fromString(presentCompanionAddress)
+            );
             // Decrypt key using present companion
-            const decryptedKey = await sessionCipherObj[
-              presentCompanionAddress
-            ].decryptWhisperMessage(presentCompanionKey.body, "binary");
+            const decryptedKey = await sessionCipher.decryptWhisperMessage(
+              presentCompanionKey.body,
+              "binary"
+            );
             // Encrypt key for missing companions and add them to responseToSend
-            await Promise.all(
-              missingCompanions.map(async (missingAddress) => {
-                // Check if sessionCipher for companion exists
-                if (!sessionCipherObj[missingAddress]) {
-                  // Create sessionCipher for companion
-                  sessionCipherObj[missingAddress] = new signal.SessionCipher(
-                    signalStore,
-                    missingAddress
-                  );
-                }
+            await Promise.all([
+              ...missingCompanions.map(async (missingAddress) => {
+                const sessionCipher = new signal.SessionCipher(
+                  signalStore,
+                  signal.SignalProtocolAddress.fromString(missingAddress)
+                );
                 // Encrypt key for missing companion
-                const encryptedKey = await sessionCipherObj[
-                  missingAddress
-                ].encrypt(Buffer.from(decryptedKey).buffer);
-                // Push encrypted key to responseToSend at keyObject._id
-                if (!responseToSend[keyObject._id]) {
-                  responseToSend[keyObject._id] = [];
+                const encryptedKey = await sessionCipher.encrypt(
+                  Buffer.from(decryptedKey).buffer
+                );
+                // Push encrypted key to missingCompanionsResponseToSend at pendingKeyObject._id
+                if (!missingCompanionsResponseToSend[pendingKeyObject._id]) {
+                  missingCompanionsResponseToSend[pendingKeyObject._id] = [];
                 }
-                responseToSend[keyObject._id].push({
+                missingCompanionsResponseToSend[pendingKeyObject._id].push({
                   companionAddress: missingAddress,
                   key: encryptedKey,
                 });
-              })
-            );
+              }),
+              // Repeat for sameChainEncryptedCompanions
+              ...sameChainEncryptedCompanions.map(async (existingAddress) => {
+                const sessionCipher = new signal.SessionCipher(
+                  signalStore,
+                  signal.SignalProtocolAddress.fromString(existingAddress)
+                );
+                // Encrypt key for existing companion
+                const encryptedKey = await sessionCipher.encrypt(
+                  Buffer.from(decryptedKey).buffer
+                );
+                // Push encrypted key to existingCompanionsResponseToSend at pendingKeyObject._id
+                if (!existingCompanionsResponseToSend[pendingKeyObject._id]) {
+                  existingCompanionsResponseToSend[pendingKeyObject._id] = [];
+                }
+                existingCompanionsResponseToSend[pendingKeyObject._id].push({
+                  companionAddress: existingAddress,
+                  key: encryptedKey,
+                });
+              }),
+            ]);
           })
         );
         // Send response to server to update keys
+        console.log(
+          missingCompanionsResponseToSend,
+          existingCompanionsResponseToSend
+        );
         const response = await fetch(
           "http://192.168.29.215:5000/api/key/update",
           {
@@ -137,7 +162,8 @@ const VaultScreen = ({ navigation }) => {
             },
             body: JSON.stringify({
               username: await SecureStore.getItemAsync("username"),
-              updatedKeys: responseToSend,
+              missingCompanionsUpdatedKeys: missingCompanionsResponseToSend,
+              existingCompanionsUpdatedKeys: existingCompanionsResponseToSend,
             }),
           }
         );
