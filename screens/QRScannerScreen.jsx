@@ -13,7 +13,7 @@ const QRScannerScreen = ({ navigation }) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [data, setData] = useState(
-    " Open web.whatapp.com on your browser or any device and scan the QRCode."
+    "Open FDrive's Vault on your browser or any device and scan the QR code."
   );
 
   const generatePreKeyBundle = async (store, preKeyId, signedPreKeyId) => {

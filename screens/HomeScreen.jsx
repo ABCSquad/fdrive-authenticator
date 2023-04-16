@@ -47,8 +47,8 @@ const HomeScreen = ({ navigation }) => {
                 />
               ))
             ) : (
-              <View className="justify-center items-center">
-                <Text>No devices found</Text>
+              <View className="justify-center items-center mt-5">
+                <Text className="text-lg">No devices found</Text>
               </View>
             )}
           </View>
