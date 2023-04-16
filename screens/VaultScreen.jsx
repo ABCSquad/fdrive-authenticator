@@ -44,6 +44,9 @@ const VaultScreen = ({ navigation }) => {
         "registrationId",
         await SecureStore.getItemAsync("registrationId")
       );
+      const companionDeviceList = JSON.parse(
+        await SecureStore.getItemAsync("companionDeviceList")
+      );
       // Iterate over companion devices and put sessions into store
       companionDeviceList.forEach(async (companionDevice) => {
         // Add session to store
@@ -112,6 +115,7 @@ const VaultScreen = ({ navigation }) => {
             )
               return;
             // Decrypt key using present companion
+            console.log(pendingKeyObject.keys[0]);
             const presentCompanionAddress =
               pendingKeyObject.keys[0].companionAddress;
             const presentCompanionKey = pendingKeyObject.keys[0].key;
@@ -120,13 +124,13 @@ const VaultScreen = ({ navigation }) => {
               signalStore,
               signal.SignalProtocolAddress.fromString(presentCompanionAddress)
             );
-            // Reset store after decryption
-            await reconstructStore();
             // Decrypt key using present companion
             const decryptedKey = await sessionCipher.decryptWhisperMessage(
               presentCompanionKey.body,
               "binary"
             );
+            // Reset store after decryption
+            await reconstructStore();
             console.log(Buffer.from(decryptedKey).toString("utf8"));
             // Encrypt key for missing companions and add them to responseToSend
             await Promise.all([

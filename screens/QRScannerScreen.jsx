@@ -98,6 +98,43 @@ const QRScannerScreen = ({ navigation }) => {
             new signal.SignalProtocolAddress.fromString(
               message.data.companionSignalProtocolAddress
             );
+          // Check if a store exists in secure store
+          const store = await SecureStore.getItemAsync("signalStore");
+          if (store) {
+            // Reconstruct store before proceeding
+            const reconstructStore = async () => {
+              let store = JSON.parse(
+                await SecureStore.getItemAsync("signalStore")
+              );
+              // Convert all base64 strings to ArrayBuffer
+              store.identityKey.pubKey = Buffer.from(
+                store.identityKey.pubKey,
+                "base64"
+              ).buffer;
+              store.identityKey.privKey = Buffer.from(
+                store.identityKey.privKey,
+                "base64"
+              ).buffer;
+              // Put store content into signal store
+              signalStore.put("identityKey", store.identityKey);
+              signalStore.put(
+                "registrationId",
+                await SecureStore.getItemAsync("registrationId")
+              );
+              const companionDeviceList = JSON.parse(
+                await SecureStore.getItemAsync("companionDeviceList")
+              );
+              // Iterate over companion devices and put sessions into store
+              companionDeviceList.forEach(async (companionDevice) => {
+                // Add session to store
+                await signalStore.storeSession(
+                  companionDevice.address,
+                  store[`session${companionDevice.address}`]
+                );
+              });
+            };
+            reconstructStore();
+          }
           // Create sessionCipher
           const sessionCipher = new signal.SessionCipher(
             signalStore,
