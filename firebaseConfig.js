@@ -3,14 +3,12 @@ import { getStorage } from "firebase/storage";
 
 // Initialize Firebase
 const firebaseConfig = {
-	apiKey: "api-key",
-	authDomain: "project-id.firebaseapp.com",
-	databaseURL: "https://project-id.firebaseio.com",
-	projectId: "project-id",
-	storageBucket: "project-id.appspot.com",
-	messagingSenderId: "sender-id",
-	appId: "app-id",
-	measurementId: "G-measurement-id",
+	apiKey: "AIzaSyDM4YlX3Unn0wpCyB7LPTS5Jmr3LYpAMlw",
+	authDomain: "fdrive-encrypted-storage.firebaseapp.com",
+	projectId: "fdrive-encrypted-storage",
+	storageBucket: "fdrive-encrypted-storage.appspot.com",
+	messagingSenderId: "245777209820",
+	appId: "1:245777209820:web:21b948585576eb7c941719",
 };
 
 const app = initializeApp(firebaseConfig);
