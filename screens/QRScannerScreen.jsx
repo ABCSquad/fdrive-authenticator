@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Button,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import NoPermissionModal from "../components/NoPermissionModal";
 import { Camera } from "expo-camera";
@@ -12,6 +18,8 @@ import _ from "lodash";
 const QRScannerScreen = ({ navigation }) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
+
   const [data, setData] = useState(
     "Open FDrive's Vault on your browser or any device and scan the QR code."
   );
@@ -72,8 +80,9 @@ const QRScannerScreen = ({ navigation }) => {
     const hexKeyRegex = /^[0-9a-fA-F]{32}$/;
     if (hexKeyRegex.test(token)) {
       setScanned(true);
+      setShowLoader(true);
       // Send websocket request to server
-      const socket = new WebSocket(`ws://192.168.29.215:7071/primary/${token}`);
+      const socket = new WebSocket(`ws://localhost:7071/primary/${token}`);
       socket.onopen = () => {
         console.log("Socket connection established");
       };
@@ -166,7 +175,7 @@ const QRScannerScreen = ({ navigation }) => {
             JSON.stringify(companionDeviceList)
           );
           // Send request to server to add companion to user devices
-          fetch("http://192.168.29.215:5000/api/user/companion/add", {
+          fetch("http://localhost:5000/api/user/companion/add", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -232,7 +241,6 @@ const QRScannerScreen = ({ navigation }) => {
               },
             })
           );
-
           // Create copy of store contents
           let storeContents = _.cloneDeep(signalStore.store);
           // Convert ArrayBuffer identityKeyPair to base64
@@ -291,23 +299,27 @@ const QRScannerScreen = ({ navigation }) => {
     <View className="flex flex-col h-full justify-between items-center bg-white">
       <View className="m-3 p-4 bg-gray-100 rounded">
         <Text className="text-center text-md">
-          {data}{" "}
-          {scanned && (
+          {data}
+          {/* {scanned && (
             <Button title="scan again" onPress={() => setScanned(false)} />
-          )}
+          )} */}
         </Text>
       </View>
-      <View className=" h-full bg-red-100 rounded">
-        {/* <BarCodeScanner
+      {scanned ? (
+        <ActivityIndicator />
+      ) : (
+        <View className=" h-full bg-red-100 rounded">
+          {/* <BarCodeScanner
           onBarCodeScanned={scanned ? undefined : handleScan}
           style={{ width: 900, height: 1600 }}
         /> */}
-        <Camera
-          onBarCodeScanned={scanned ? undefined : handleScan}
-          ratio="16:9"
-          style={{ width: 450, height: 854 }}
-        />
-      </View>
+          <Camera
+            onBarCodeScanned={scanned ? undefined : handleScan}
+            ratio="16:9"
+            style={{ width: 450, height: 854 }}
+          />
+        </View>
+      )}
     </View>
   );
 };

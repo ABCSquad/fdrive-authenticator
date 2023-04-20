@@ -13,7 +13,7 @@ const VaultScreen = ({ navigation }) => {
     let companionDeviceList;
     const checkForNewFileKeys = async () => {
       // Send request to server
-      const response = await fetch("http://192.168.29.215:5000/api/key/check", {
+      const response = await fetch("http://localhost:5000/api/key/check", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,7 +118,7 @@ const VaultScreen = ({ navigation }) => {
             console.log(pendingKeyObject.keys[0]);
             const presentCompanionAddress =
               pendingKeyObject.keys[0].companionAddress;
-            const presentCompanionKey = pendingKeyObject.keys[0].key;
+            const presentCompanionKey = pendingKeyObject.keys[0].phoneKey;
             // Create sessionCipher for present companion
             const sessionCipher = new signal.SessionCipher(
               signalStore,
@@ -182,20 +182,17 @@ const VaultScreen = ({ navigation }) => {
           missingCompanionsResponseToSend,
           existingCompanionsResponseToSend
         );
-        const response = await fetch(
-          "http://192.168.29.215:5000/api/key/update",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              username: await SecureStore.getItemAsync("username"),
-              missingCompanionsUpdatedKeys: missingCompanionsResponseToSend,
-              existingCompanionsUpdatedKeys: existingCompanionsResponseToSend,
-            }),
-          }
-        );
+        const response = await fetch("http://localhost:5000/api/key/update", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: await SecureStore.getItemAsync("username"),
+            missingCompanionsUpdatedKeys: missingCompanionsResponseToSend,
+            existingCompanionsUpdatedKeys: existingCompanionsResponseToSend,
+          }),
+        });
         if (!response.ok) {
           console.log("Error updating keys");
         }
