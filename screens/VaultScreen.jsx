@@ -131,7 +131,6 @@ const VaultScreen = ({ navigation }) => {
             );
             // Reset store after decryption
             await reconstructStore();
-            console.log(Buffer.from(decryptedKey).toString("utf8"));
             // Encrypt key for missing companions and add them to responseToSend
             await Promise.all([
               ...missingCompanions.map(async (missingAddress) => {
@@ -155,6 +154,21 @@ const VaultScreen = ({ navigation }) => {
               }),
               // Repeat for sameChainEncryptedCompanions
               ...sameChainEncryptedCompanions.map(async (existingAddress) => {
+                // Retrieve existing file keys in secure store
+                let existingFileKeys = _.cloneDeep(
+                  JSON.parse(await SecureStore.getItemAsync("fileKeys")) || {}
+                );
+                // Add new key to existing file keys
+                existingFileKeys[pendingKeyObject.file] =
+                  Buffer.from(decryptedKey).toString("utf8");
+                await SecureStore.setItemAsync(
+                  "fileKeys",
+                  JSON.stringify(existingFileKeys)
+                );
+                console.log(
+                  "fileKeys",
+                  await SecureStore.getItemAsync("fileKeys")
+                );
                 // Update signalStore with content in SecureStorage
                 const sessionCipher = new signal.SessionCipher(
                   signalStore,

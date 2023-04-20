@@ -40,6 +40,7 @@ const ScreenStack = () => {
     await SecureStore.deleteItemAsync("signalProtocolAddress");
     await SecureStore.deleteItemAsync("companionDeviceList");
     await SecureStore.deleteItemAsync("signalStore");
+    await SecureStore.deleteItemAsync("fileKeys");
     setIsAuthenticated(false);
   };
 
