@@ -13,13 +13,13 @@ export default function Device({ name, version, os, lastLogin, location }) {
           <Text className="text-base">{location}</Text>
         </View>
       </View>
-      <View className="grow items-center justify-center border-l-2 border-border">
+      {/* <View className="grow items-center justify-center border-l-2 border-border">
         <TouchableOpacity className="bg-white">
           <View className="w-12 h-12 items-center justify-center">
             <Icon name="trash" size={25} color="red" />
           </View>
         </TouchableOpacity>
-      </View>
+      </View> */}
     </View>
   );
 }

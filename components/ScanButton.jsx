@@ -4,12 +4,12 @@ import { styled } from "nativewind";
 const StyledView = styled(View);
 
 export default function ScanButton({ navigation }) {
-	const [showDropdown, setShowDropdown] = useState(false);
-	const buttonRef = useRef(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const buttonRef = useRef(null);
 
-	const handleScanButtonPress = () => {
-		setShowDropdown(!showDropdown);
-	};
+  const handleScanButtonPress = () => {
+    setShowDropdown(!showDropdown);
+  };
 
   const handleOptionButtonPress = (option) => {
     if (option === 1) {
@@ -42,7 +42,7 @@ export default function ScanButton({ navigation }) {
           onPress={() => setShowDropdown(false)}
           className={`inline-flex flex-1 justify-end items-end bg-opacity-100 fixed`}
         >
-          <View className={`px-4 py-2 rounded-md relative -top-24`}>
+          <View className={`px-4 py-2 rounded-md relative -top-28`}>
             <TouchableOpacity
               onPress={() => handleOptionButtonPress(1)}
               className="items-end rounded-lg my-2 bg-white border border-border shadow-sm shadow-gray-200"

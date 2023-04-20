@@ -16,14 +16,14 @@ const HomeScreen = ({ navigation }) => {
         {/* Device List */}
         <DeviceList />
 
-				<View className="flex-none px-8 py-8 w-full bg-white">
-					<ScanButton navigation={navigation} />
-				</View>
+        <View className="flex-none px-4 py-8 w-full bg-white">
+          <ScanButton navigation={navigation} />
+        </View>
 
-				<StatusBar style="auto" />
-			</SafeAreaView>
-		</>
-	);
+        <StatusBar style="auto" />
+      </SafeAreaView>
+    </>
+  );
 };
 
 export default HomeScreen;

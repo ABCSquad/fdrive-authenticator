@@ -66,10 +66,10 @@ const QRScannerScreen = ({ navigation }) => {
     })();
   };
 
-	// Request Camera Permission
-	useEffect(() => {
-		askForCameraPermission();
-	}, []);
+  // Request Camera Permission
+  useEffect(() => {
+    askForCameraPermission();
+  }, []);
 
   // Scan QRCode
   const handleScan = async ({ type, data }) => {
@@ -264,9 +264,36 @@ const QRScannerScreen = ({ navigation }) => {
     }
   };
 
-		setData(data);
+  // Screen when system permission modal is shown
+  if (hasPermission === null) {
+    return (
+      <View className="flex flex-col h-full justify-between items-center bg-white">
+        <View className="m-3 p-4 bg-gray-100 rounded">
+          <Text className="text-center text-md">
+            Open web.whatapp.com on your browser or any device and scan the QR
+            Code.
+          </Text>
+        </View>
+        <View className=" p-4 h-full w-screen bg-red-100 rounded"></View>
+      </View>
+    );
+  }
 
-		navigation.navigate("Home"); //ADD after successfull fetch
+  // Screen when permission is denied
+  if (hasPermission === false) {
+    return (
+      <NoPermissionModal
+        navigation={navigation}
+        askForCameraPermission={askForCameraPermission}
+      />
+      // <View>
+      //   <Button
+      //     onPress={() => askForCameraPermission()}
+      //     title="click me"
+      //   ></Button>
+      // </View>
+    );
+  }
 
   return (
     <View className="flex flex-col h-full justify-between items-center bg-white">
