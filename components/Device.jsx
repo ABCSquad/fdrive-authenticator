@@ -1,12 +1,14 @@
-import { View, Text, TouchableOpacity } from "react-native"
-import Icon from "react-native-vector-icons/Entypo"
+import { View, Text, TouchableOpacity } from "react-native";
+import Icon from "react-native-vector-icons/Entypo";
 
-export default function Device({ name, lastLogin, location }) {
+export default function Device({ name, version, os, lastLogin, location }) {
   return (
     <View className="flex-row my-3 ml-3">
       <View className="w-4/5">
         <View className="px-2 py-1 w-full">
-          <Text className="text-base font-bold">{name}</Text>
+          <Text className="text-base font-bold">
+            {name} ({os})
+          </Text>
           <Text className="text-base">Last login: {lastLogin}</Text>
           <Text className="text-base">{location}</Text>
         </View>
@@ -19,5 +21,5 @@ export default function Device({ name, lastLogin, location }) {
         </TouchableOpacity>
       </View>
     </View>
-  )
+  );
 }

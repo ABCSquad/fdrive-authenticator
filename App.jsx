@@ -11,6 +11,7 @@ import "expo-random";
 import HomeScreen from "./screens/HomeScreen";
 import QRScannerScreen from "./screens/QRScannerScreen";
 import LoginScreen from "./screens/LoginScreen";
+import VaultScreen from "./screens/VaultScreen";
 
 import { AuthContext } from "./context/AuthContext";
 import { Button } from "react-native";
@@ -23,7 +24,7 @@ const ScreenStack = () => {
   React.useEffect(() => {
     // Check if user is authenticated
     const checkAuth = async () => {
-      const identityKey = await SecureStore.getItemAsync("identityKey");
+      const identityKey = await SecureStore.getItemAsync("identityPrivKey");
       if (identityKey) {
         setIsAuthenticated(true);
       }
@@ -32,10 +33,14 @@ const ScreenStack = () => {
   }, []);
 
   const handleLogout = async () => {
+    await SecureStore.deleteItemAsync("identityPubKey");
+    await SecureStore.deleteItemAsync("identityPrivKey");
+    await SecureStore.deleteItemAsync("registrationId");
     await SecureStore.deleteItemAsync("username");
-    await SecureStore.deleteItemAsync("identityKey");
     await SecureStore.deleteItemAsync("signalProtocolAddress");
-    await SecureStore.deleteItemAsync("companions");
+    await SecureStore.deleteItemAsync("companionDeviceList");
+    await SecureStore.deleteItemAsync("signalStore");
+    await SecureStore.deleteItemAsync("fileKeys");
     setIsAuthenticated(false);
   };
 
@@ -59,6 +64,11 @@ const ScreenStack = () => {
                 name="QRScanner"
                 component={QRScannerScreen}
                 options={{ title: "Scan QR Code" }}
+              />
+              <Stack.Screen
+                name="Vault"
+                component={VaultScreen}
+                options={{ title: "Vault" }}
               />
             </>
           ) : (
